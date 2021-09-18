@@ -1,0 +1,12 @@
+version = 0.1
+[default]
+[default.deploy]
+[default.deploy.parameters]
+stack_name = "cv2-saturday"
+s3_bucket = "aws-sam-cli-managed-default-samclisourcebucket-k0hdq4582wkt"
+s3_prefix = "cv2-saturday"
+region = "us-east-1"
+confirm_changeset = true
+capabilities = "CAPABILITY_IAM"
+image_repositories = []
+parameter_overrides = "AppName=\"cv2-kinesis-iot\""

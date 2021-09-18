@@ -1,0 +1,51 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: >
+  sam-kinesis
+Parameters:
+  AppName: 
+    Type: String
+    Default: cv2Kinesis
+
+Conditions:
+  SandboxRegionUS: !Equals [!Ref 'AWS::Region', 'us-east-1']
+  SandboxRegionCanada: !Equals [!Ref 'AWS::Region', 'ca-central-1']
+
+  DevEnvironment: !Or
+    - !Condition SandboxRegionCanada
+    - !Condition SandboxRegionUS
+   
+Resources:
+  Si3mshadyS3:
+    Type: 'AWS::S3::Bucket'   
+    Properties:
+      BucketName: si3mshadys3cv2
+
+  StreamShady: 
+      Condition: DevEnvironment
+      Type: AWS::Kinesis::Stream 
+      Properties:           
+          Name: StreamShadyKinesis         
+          ShardCount: 1
+
+  ProcessImage: 
+    Type: AWS::Serverless::Function
+    Condition: DevEnvironment
+    Properties: 
+      CodeUri: './cv_kinesis'
+      Handler: app.lambda_handler
+      MemorySize: 512
+      Role: !Sub arn:aws:iam::${AWS::AccountId}:role/lambda-admin
+      Runtime: python3.9
+      Timeout: 30      
+      FunctionName: !Sub ${AppName}-lambdaFunc
+      Events:
+        Stream:
+          Type: Kinesis
+          Properties:
+            Stream: !GetAtt StreamShady.Arn
+            BatchSize: 50
+            StartingPosition: LATEST
+
+
+
